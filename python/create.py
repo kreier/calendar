@@ -1,6 +1,7 @@
 # create calendar 2024-10-03
 
 from fpdf import FPDF
+from datetime import datetime
 import pandas as pd
 import os, sys, math
 
@@ -26,9 +27,11 @@ def pos_y(day):
     global y1
     return y1 + 20 + 17.1*day
 
-def import_colors():
-    global colors
-    colors = []
+def is_valid_date(year, month, day):
+    day_count_for_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    if year%4==0 and (year%100 != 0 or year%400==0):
+        day_count_for_month[2] = 29
+    return (1 <= month <= 12 and 1 <= day <= day_count_for_month[month])
 
 def create_canvas(year):
     global filename, pdf, colors
@@ -58,14 +61,20 @@ def create_canvas(year):
         fill_color = (220 + 25*math.sin(month/6*math.pi + 4.2), 220 + 25*math.sin(month/6*math.pi), 220 + 25*math.sin(month/6*math.pi + 2.15))
         pdf.set_fill_color(fill_color)
         for day in range(32):
-            pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
             pdf.set_xy(pos_x(month)+1, pos_y(day))
             if day == 0:
+                pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
                 pdf.set_font_size(12)
                 pdf.cell(w=67.8, h=17.1, align='C', text=months[month])
             else:
-                pdf.set_font_size(8)
-                pdf.cell(text=str(day))
+                if is_valid_date(year, month + 1, day):
+                    if datetime(year, month +1, day).isoweekday() < 6:  # weekday
+                        pdf.set_fill_color(fill_white)
+                    else:
+                        pdf.set_fill_color(fill_color)
+                    pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
+                    pdf.set_font_size(8)
+                    pdf.cell(text=str(day))
 
 def create_vacation(year):
     print("no vacation yet")
@@ -76,7 +85,6 @@ def render_to_file():
     pdf.output(filename)
 
 def create_calendar(year):
-    import_colors()
     create_canvas(year)
     create_vacation(year)
     render_to_file()
@@ -86,5 +94,5 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("You did not provide a year as argument. Put it as a parameter after create.py")
         exit()
-    year = sys.argv[1]
+    year = int(sys.argv[1])
     create_calendar(year)
