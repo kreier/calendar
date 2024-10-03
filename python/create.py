@@ -21,7 +21,7 @@ if os.getcwd()[-6:] != "python":
 
 def pos_x(month):
     global x1
-    return x1 + 67.8*month
+    return x1 + 67.8*(month-1)
 
 def pos_y(day):
     global y1
@@ -49,44 +49,80 @@ def create_canvas(year):
     pdf.set_font_size(20)
     pdf.set_text_color(0, 0, 155)
     pdf.cell(text=str(year))                                      # Cell takes the upper left corner as reference for printing text
-    months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    colors = [[255, 255, 5]]
     # create outlines for 365 days
     pdf.set_line_width(0.8)
     pdf.set_draw_color(0, 0, 0)                                   # pure black outside lines
     pdf.set_text_color(0)
     pdf.set_font_size(12)
     fill_white = (255, 255, 255)
-    for month in range(12):
-        fill_color = (220 + 25*math.sin(month/6*math.pi + 4.2), 220 + 25*math.sin(month/6*math.pi), 220 + 25*math.sin(month/6*math.pi + 2.15))
+    for month in range(1, 13):
+        fill_color = (220 + 25*math.sin(month/6*math.pi + 3.2), 220 + 25*math.sin(month/6*math.pi - 1), 220 + 25*math.sin(month/6*math.pi + 1.15))
         pdf.set_fill_color(fill_color)
         for day in range(32):
             pdf.set_xy(pos_x(month)+1, pos_y(day))
             if day == 0:
                 pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
-                pdf.set_font_size(12)
-                pdf.cell(w=67.8, h=17.1, align='C', text=months[month])
+                # pdf.set_font_size(12)
+                # pdf.cell(w=67.8, h=17.1, align='C', text=months[month])
             else:
-                if is_valid_date(year, month + 1, day):
-                    if datetime(year, month +1, day).isoweekday() < 6:  # weekday
+                if is_valid_date(year, month, day):
+                    if datetime(year, month, day).isoweekday() < 6:  # weekday
                         pdf.set_fill_color(fill_white)
                     else:
                         pdf.set_fill_color(fill_color)
                     pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
-                    pdf.set_font_size(8)
-                    pdf.cell(text=str(day))
+                    # pdf.set_font_size(8)
+                    # pdf.cell(text=str(day))
 
 def create_vacation(year):
-    print("no vacation yet")
+    sourcefile = "../vacation/" + str(year) + ".csv"
+    if os.path.exists(sourcefile):
+        vacation = pd.read_csv(sourcefile, encoding='utf8') 
+        with pdf.local_context(fill_opacity=0.5, stroke_opacity=0.5):
+            pdf.set_line_width(2)
+            pdf.set_draw_color(255)
+            for index, row in vacation.iterrows():
+                pdf.set_draw_color(row.rd, row.gd, row.bd)
+                pdf.set_fill_color(row.rf, row.gf, row.bf)
+                pdf.rect(pos_x(row.month), pos_y(row.start), 67.8, (row.end - row.start + 1)*17.1, style="FD")
+
+def create_events(year):
+    sourcefile = "../events/" + str(year) + ".csv"
+    if os.path.exists(sourcefile):
+        pdf.set_text_color(0)
+        events = pd.read_csv(sourcefile, encoding='utf8') 
+        for index, row in events.iterrows():
+            pdf.set_font_size(row.pt)
+            pdf.set_xy(pos_x(row.month) + 14, pos_y(row.day))
+            pdf.multi_cell(51, 16.7/row.lines, align="C",  text=row.text)
+
+def create_periods(year):
     return True
+
+def add_dates(year):
+    months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    pdf.set_text_color(0)
+    for month in range(1,13):
+        for day in range(32):
+            pdf.set_xy(pos_x(month)+1, pos_y(day))
+            if day == 0:
+                pdf.set_font_size(12)
+                pdf.cell(w=67.8, h=17.1, align='C', text=months[month - 1])
+            else:
+                if is_valid_date(year, month, day):
+                    pdf.set_font_size(8)
+                    pdf.cell(text=str(day))
 
 def render_to_file():
     global pdf, filename
     pdf.output(filename)
+    print(f"Exported {year}.pdf")
 
 def create_calendar(year):
     create_canvas(year)
     create_vacation(year)
+    create_events(year)
+    add_dates(year)
     render_to_file()
 
 if __name__ == '__main__':
