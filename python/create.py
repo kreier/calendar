@@ -2,7 +2,7 @@
 
 from fpdf import FPDF
 import pandas as pd
-import os, sys
+import os, sys, math
 
 version      = "24.10"
 mm           = 2.834645669      # document is in pt, 46 rows with 12pt height, text 10pt
@@ -24,10 +24,14 @@ def pos_x(month):
 
 def pos_y(day):
     global y1
-    return y1 + 20 + 16.7*day
+    return y1 + 20 + 17.1*day
+
+def import_colors():
+    global colors
+    colors = []
 
 def create_canvas(year):
-    global filename, pdf
+    global filename, pdf, colors
     filename = "../export/" + str(year) + ".pdf"
     pdf = FPDF(unit="pt", format=(page_width, page_height))       # don't use orientation ="landscape" since it only swaps width and height
     pdf.set_margin(0)
@@ -40,25 +44,28 @@ def create_canvas(year):
     pdf.set_subject("Organizing your Time, Documenting Main Events")
     pdf.set_xy(x1, y1)
     pdf.set_font_size(20)
-    pdf.set_text_color(0, 0, 100)
+    pdf.set_text_color(0, 0, 155)
     pdf.cell(text=str(year))                                      # Cell takes the upper left corner as reference for printing text
     months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    colors = [[255, 255, 5]]
     # create outlines for 365 days
     pdf.set_line_width(0.8)
     pdf.set_draw_color(0, 0, 0)                                   # pure black outside lines
-    pdf.set_fill_color(255)
     pdf.set_text_color(0)
     pdf.set_font_size(12)
+    fill_white = (255, 255, 255)
     for month in range(12):
+        fill_color = (220 + 25*math.sin(month/6*math.pi + 4.2), 220 + 25*math.sin(month/6*math.pi), 220 + 25*math.sin(month/6*math.pi + 2.15))
+        pdf.set_fill_color(fill_color)
         for day in range(32):
-            pdf.rect(pos_x(month), pos_y(day), 67.8, 16.7, style="FD")
-            pdf.set_xy(pos_x(month), pos_y(day))
+            pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
+            pdf.set_xy(pos_x(month)+1, pos_y(day))
             if day == 0:
                 pdf.set_font_size(12)
-                pdf.cell(w=67.8, h=16.7, align='C', text=months[month])
+                pdf.cell(w=67.8, h=17.1, align='C', text=months[month])
             else:
                 pdf.set_font_size(8)
-                pdf.cell(text=" "+str(day))
+                pdf.cell(text=str(day))
 
 def create_vacation(year):
     print("no vacation yet")
@@ -69,6 +76,7 @@ def render_to_file():
     pdf.output(filename)
 
 def create_calendar(year):
+    import_colors()
     create_canvas(year)
     create_vacation(year)
     render_to_file()
