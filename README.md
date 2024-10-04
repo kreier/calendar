@@ -1,5 +1,7 @@
 # Calendar
 
+<img src="https://raw.githubusercontent.com/kreier/calendar/refs/heads/main/docs/2024.png" width="17%" align="right">
+
 Create A4 landscape calendars to organize my life.
 
 ## Data in the /db folder
@@ -17,3 +19,5 @@ For some time I used to work with reportlab and it suited my needs very well. Bu
 ## Dimensions
 
 An A4 paper in landscape is 297 x 210 mm. Given 5 mm border the calendar with 31 lines for days, one more line for month and some 2 lines for the year on top have a remaining area of 287 mm width and 200 mm height. Each month would therefore get 287/12 = 23.9mm = 67.8pt width. If weekends get a different color then the days don't need to be labeled. As for the line height, we would need 31 + 1 + 2 = 34 lines. Each has a height of 200/34 = 5.89 mm. One point is 0.3515 mm, this line height is 17.1 points.
+
+<img src="https://raw.githubusercontent.com/kreier/calendar/refs/heads/main/docs/2024.png" width="48%"> <img src="https://raw.githubusercontent.com/kreier/calendar/refs/heads/main/docs/2025.png" width="48%">
