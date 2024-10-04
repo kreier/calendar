@@ -40,6 +40,7 @@ def create_canvas(year):
     pdf.set_margin(0)
     pdf.c_margin = 0
     pdf.add_font("Aptos", style="", fname="fonts/aptos.ttf")
+    pdf.add_font("Aptos", style="B", fname="fonts/aptos-bold.ttf")
     pdf.set_font("Aptos", "", 10)
     pdf.add_page(format=(page_width, page_height))
     pdf.set_author("Matthias Kreier")
@@ -48,22 +49,30 @@ def create_canvas(year):
     pdf.set_xy(x1, y1)
     pdf.set_font_size(20)
     pdf.set_text_color(0, 0, 155)
+    pdf.set_font(style="B")
     pdf.cell(text=str(year))                                      # Cell takes the upper left corner as reference for printing text
+    pdf.set_font_size(16)
+    with pdf.rotation(angle=270, x=pos_x(13)+14, y=pos_y(31)):
+        pdf.set_xy(pos_x(13)-3, pos_y(31))
+        pdf.cell(text=str(year))
+
+    pdf.set_font(style="")
     # create outlines for 365 days
     pdf.set_line_width(0.8)
     pdf.set_draw_color(0, 0, 0)                                   # pure black outside lines
     pdf.set_text_color(0)
     pdf.set_font_size(12)
     fill_white = (255, 255, 255)
+    intensity = 80
+    rgb = 255 - intensity
     for month in range(1, 13):
-        fill_color = (220 + 25*math.sin(month/6*math.pi + 3.2), 220 + 25*math.sin(month/6*math.pi - 1), 220 + 25*math.sin(month/6*math.pi + 1.15))
+        angle = month/6*math.pi
+        fill_color = (rgb + intensity*math.sin(angle+3.14), rgb + intensity*math.sin(angle-1.05), rgb + intensity*math.sin(angle+1.15))
         pdf.set_fill_color(fill_color)
         for day in range(32):
             pdf.set_xy(pos_x(month)+1, pos_y(day))
             if day == 0:
                 pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
-                # pdf.set_font_size(12)
-                # pdf.cell(w=67.8, h=17.1, align='C', text=months[month])
             else:
                 if is_valid_date(year, month, day):
                     if datetime(year, month, day).isoweekday() < 6:  # weekday
@@ -71,14 +80,12 @@ def create_canvas(year):
                     else:
                         pdf.set_fill_color(fill_color)
                     pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
-                    # pdf.set_font_size(8)
-                    # pdf.cell(text=str(day))
 
 def create_vacation(year):
     sourcefile = "../vacation/" + str(year) + ".csv"
     if os.path.exists(sourcefile):
         vacation = pd.read_csv(sourcefile, encoding='utf8') 
-        with pdf.local_context(fill_opacity=0.5, stroke_opacity=0.5):
+        with pdf.local_context(fill_opacity=0.6, stroke_opacity=0.8):
             pdf.set_line_width(2)
             pdf.set_draw_color(255)
             for index, row in vacation.iterrows():
