@@ -4,9 +4,9 @@
 
 Create A4 landscape calendars to organize my life.
 
-## Data in the /db folder
+## Data in the /vacation and /events folder
 
-Inside the db folder are the required files to be found. Each year has its own folder. Inside are the relevant listed dates as `.csv` files. For example the `vacation.csv` for all kind of holidays. The structure is to be determined later
+Inside the respective folders are the required files to be found. Each year has its own `.csv` file. For example the `vacation/2024.csv` for the 2024 dates.
 
 ## Program in the /python folder
 
