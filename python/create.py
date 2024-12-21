@@ -1,11 +1,13 @@
-# create calendar 2024-10-03
+# create a calendar in A4 landscape
+# created 2024-10-03
+# edited  2024-12-20
 
 from fpdf import FPDF
 from datetime import datetime
 import pandas as pd
 import os, sys, math
 
-version      = "24.10"
+version      = "24.12"
 mm           = 2.834645669      # document is in pt, 46 rows with 12pt height, text 10pt
 border_lr    = 5*mm              
 border_tb    = 5*mm          
@@ -46,14 +48,16 @@ def create_canvas(year):
     pdf.set_author("Matthias Kreier")
     pdf.set_title(f"Calendar {year}")
     pdf.set_subject("Organizing your Time, Documenting Main Events")
+    # Put year in top left corner in size 20
     pdf.set_xy(x1, y1)
     pdf.set_font_size(20)
     pdf.set_text_color(0, 0, 155)
     pdf.set_font(style="B")
     pdf.cell(text=str(year))                                      # Cell takes the upper left corner as reference for printing text
-    pdf.set_font_size(16)
+    # Smaller year rotated 90 degrees in bottom right corner, size 14
+    pdf.set_font_size(14)
     with pdf.rotation(angle=270, x=pos_x(13)+14, y=pos_y(31)):
-        pdf.set_xy(pos_x(13)-3, pos_y(31))
+        pdf.set_xy(pos_x(13), pos_y(31))
         pdf.cell(text=str(year))
 
     pdf.set_font(style="")
@@ -80,11 +84,13 @@ def create_canvas(year):
                     else:
                         pdf.set_fill_color(fill_color)
                     pdf.rect(pos_x(month), pos_y(day), 67.8, 17.1, style="FD")
+    print("- canvas created")
 
 def create_vacation(year):
     sourcefile = "../vacation/" + str(year) + ".csv"
     if os.path.exists(sourcefile):
-        vacation = pd.read_csv(sourcefile, encoding='utf8') 
+        vacation = pd.read_csv(sourcefile, encoding='utf8')
+        number_vacations = 0
         with pdf.local_context(fill_opacity=0.6, stroke_opacity=0.8):
             pdf.set_line_width(2)
             pdf.set_draw_color(255)
@@ -92,19 +98,34 @@ def create_vacation(year):
                 pdf.set_draw_color(row.rd, row.gd, row.bd)
                 pdf.set_fill_color(row.rf, row.gf, row.bf)
                 pdf.rect(pos_x(row.month), pos_y(row.start), 67.8, (row.end - row.start + 1)*17.1, style="FD")
+                number_vacations += 1
+        print(f"- included {number_vacations} vacation periods")
 
 def create_events(year):
     sourcefile = "../events/" + str(year) + ".csv"
     if os.path.exists(sourcefile):
         pdf.set_text_color(0)
-        events = pd.read_csv(sourcefile, encoding='utf8') 
+        events = pd.read_csv(sourcefile, encoding='utf8')
+        number_events = 0
         for index, row in events.iterrows():
             pdf.set_font_size(row.pt)
             pdf.set_xy(pos_x(row.month) + 14, pos_y(row.day))
             pdf.multi_cell(51, 16.7/row.lines, align="C",  text=row.text)
+            number_events += 1
+        print(f"- included {number_events} events")
 
-def create_periods(year):
-    return True
+def create_periods(year): # they are rotated by 90 degrees
+    sourcefile = "../periods/" + str(year) + ".csv"
+    if os.path.exists(sourcefile):
+        periods = pd.read_csv(sourcefile, encoding='utf8')
+        number_periods = 0
+        for index, row in periods.iterrows():
+            pdf.set_font_size(row.pt)
+            with pdf.rotation(angle=90, x=pos_x(row.month) + 10, y=pos_y(row.day + 1)):
+                pdf.set_xy(pos_x(row.month) + 10, pos_y(row.day + 1))
+                pdf.multi_cell(16.7 * row.lines, row.pt, align="C",  text=row.text)
+            number_periods += 1
+        print(f"- included {number_periods} periods")
 
 def add_dates(year):
     months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
@@ -119,6 +140,7 @@ def add_dates(year):
                 if is_valid_date(year, month, day):
                     pdf.set_font_size(8)
                     pdf.cell(text=str(day))
+    print(f"- included months and days for {year}")
 
 def render_to_file():
     global pdf, filename
@@ -129,6 +151,7 @@ def create_calendar(year):
     create_canvas(year)
     create_vacation(year)
     create_events(year)
+    create_periods(year)
     add_dates(year)
     render_to_file()
 
