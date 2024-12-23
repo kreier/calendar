@@ -1,5 +1,9 @@
 # Calendar
 
+[![pages-build-deployment](https://github.com/kreier/calendar/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/kreier/calendar/actions/workflows/pages/pages-build-deployment)
+[![GitHub release](https://img.shields.io/github/release/kreier/calendar.svg)](https://GitHub.com/kreier/calendar/releases/)
+[![MIT license](https://img.shields.io/github/license/kreier/calendar)](https://kreier.mit-license.org/)
+
 <img src="https://raw.githubusercontent.com/kreier/calendar/refs/heads/main/docs/2024.png" width="17%" align="right">
 
 Create A4 landscape calendars to organize my life.
